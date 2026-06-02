@@ -3,76 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Retro YouTube TV</title>
+  <title>Retro YouTube TV — 90s Guide</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="room">
+    <!-- ===== 90s black-plastic TV set ===== -->
     <div class="tv">
-      <!-- Wooden cabinet -->
       <div class="cabinet">
-        <!-- Screen area -->
-        <div class="screen-bezel">
+        <div class="bezel">
           <div class="screen" id="screen">
-            <!-- YouTube player mounts here -->
+            <!-- YouTube player (re-positioned for guide vs. full-screen) -->
             <div id="player"></div>
 
-            <!-- Static / noise overlay shown while switching channels -->
-            <div class="static" id="static"></div>
+            <!-- ===== Prevue-style on-screen guide ===== -->
+            <div class="guide" id="guide">
+              <!-- Top: preview window (left) + promo panel (right) -->
+              <div class="preview-window" id="previewWindow">
+                <div class="preview-frame"></div>
+                <div class="preview-tag" id="previewTag">NOW PLAYING</div>
+              </div>
 
-            <!-- Scanlines + CRT glare -->
+              <div class="promo">
+                <div class="promo-logo">
+                  <span class="promo-logo-top">RETRO</span>
+                  <span class="promo-logo-bot">GUIDE&nbsp;<b>+</b></span>
+                </div>
+                <div class="promo-now" id="promoNow">—</div>
+                <div class="promo-msg">Use the CH buttons to browse &middot; press WATCH to tune in</div>
+                <div class="promo-clock" id="promoClock">--:-- --</div>
+              </div>
+
+              <!-- Bottom: scrolling listings grid -->
+              <div class="listings">
+                <div class="listings-head">
+                  <div class="lh-channel">CHANNEL</div>
+                  <div class="lh-time" id="slot0">8:00 PM</div>
+                  <div class="lh-time" id="slot1">8:30 PM</div>
+                  <div class="lh-time" id="slot2">9:00 PM</div>
+                </div>
+                <div class="listings-viewport">
+                  <div class="listings-rows" id="listingsRows"><!-- rows injected --></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Channel banner shown briefly when tuning -->
+            <div class="banner" id="banner">
+              <span class="banner-num" id="bannerNum">02</span>
+              <span class="banner-name" id="bannerName">CHANNEL</span>
+            </div>
+
+            <!-- CRT scanlines + glare -->
             <div class="scanlines"></div>
             <div class="glare"></div>
 
-            <!-- On-screen channel display -->
-            <div class="osd" id="osd">CH 01</div>
-
-            <!-- Power-off state -->
-            <div class="power-off" id="powerOff">
-              <div class="power-dot"></div>
-            </div>
+            <!-- static + power-off -->
+            <div class="static" id="static"></div>
+            <div class="power-off" id="powerOff"></div>
           </div>
         </div>
 
-        <!-- Control panel -->
-        <div class="controls">
-          <div class="brand">RetroTron&nbsp;<span>2600</span></div>
+        <!-- Control strip (90s style: speaker + buttons) -->
+        <div class="front">
+          <div class="speaker"><div class="grille"></div></div>
 
-          <div class="knobs">
-            <button class="knob power" id="powerBtn" title="Power">
-              <span class="knob-label">PWR</span>
+          <div class="badge">
+            <div class="brand">FUNTRON</div>
+            <div class="sub">STEREO &middot; COLOR</div>
+          </div>
+
+          <div class="buttons">
+            <button class="btn power" id="powerBtn" title="Power (P)">
+              <span class="led" id="led"></span>POWER
             </button>
-
-            <div class="channel-cluster">
-              <button class="knob" id="chDown" title="Channel down">
-                <span class="arrow">&#9664;</span>
-              </button>
-              <div class="channel-readout" id="channelReadout">01</div>
-              <button class="knob" id="chUp" title="Channel up">
-                <span class="arrow">&#9654;</span>
-              </button>
+            <div class="btn-row">
+              <button class="btn" id="chDown" title="Channel down">CH&nbsp;&#9660;</button>
+              <button class="btn" id="chUp" title="Channel up">CH&nbsp;&#9650;</button>
             </div>
-
-            <div class="volume-cluster">
-              <span class="knob-label">VOL</span>
+            <button class="btn wide" id="guideBtn" title="Toggle guide (G)">GUIDE</button>
+            <button class="btn wide" id="watchBtn" title="Watch channel (Enter)">WATCH</button>
+            <div class="vol">
+              <span>VOL</span>
               <input type="range" id="volume" min="0" max="100" value="60" />
             </div>
           </div>
-
-          <div class="speaker">
-            <div class="speaker-grille"></div>
-          </div>
         </div>
       </div>
 
-      <!-- Cabinet legs -->
-      <div class="legs">
-        <div class="leg"></div>
-        <div class="leg"></div>
-      </div>
+      <div class="legs"><div class="leg"></div><div class="leg"></div></div>
     </div>
 
-    <div class="now-playing" id="nowPlaying">&mdash;</div>
+    <div class="hint" id="hint">Press <b>POWER</b> to turn on the TV</div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>

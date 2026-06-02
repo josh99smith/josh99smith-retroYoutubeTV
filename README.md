@@ -1,20 +1,23 @@
-# 📺 Retro YouTube TV
+# 📺 Retro YouTube TV — 90s TV Guide Edition
 
-A vintage CRT-television interface for watching YouTube. Wooden cabinet,
-scanlines, channel knobs, static transitions, and a satisfying CRT power-off
-animation.
+A black-plastic 1990s television whose home screen is a **Prevue / TV-Guide
+Channel** style interface: a live YouTube **video preview** window up top and
+an **auto-scrolling program listings grid** below. Tune to a channel to watch
+it full-screen, complete with a 90s channel banner.
 
-![retro tv](https://img.shields.io/badge/style-CRT-orange)
+![retro tv](https://img.shields.io/badge/style-90s%20CRT-blue)
+
+**Live:** <https://josh99smith.github.io/josh99smith-retroYoutubeTV/>
 
 ## Features
 
-- 🪵 Wood-grain TV cabinet with speaker grille and angled legs
-- 📺 CRT effects: scanlines, screen glare, curved-glass vignette
+- 📼 Chunky 90s black-plastic cabinet (FUNTRON "STEREO · COLOR"), speaker grille, power LED
+- 🗂️ **TV-Guide channel**: scrolling blue listings grid + live preview window + promo panel + on-screen clock
+- 📺 Full-screen "tune in" mode with a retro **channel banner** (CH 07 SYNTHWAVE)
 - 📡 **Static / noise burst** when changing channels
-- 🔌 CRT-style "collapse to a dot" power-off animation
-- 🎚️ Working **power**, **channel up/down**, and **volume** controls
-- ⌨️ Keyboard shortcuts: `P` = power, arrow keys = change channel
-- 🟢 On-screen channel display (OSD)
+- 🔌 CRT "collapse to a dot" power-off animation, scanlines, curved-glass glare
+- 🎚️ Working **POWER**, **CH ▲/▼**, **GUIDE**, **WATCH**, and **volume** controls
+- ⌨️ Keyboard: `P` = power, ↑/↓ = channel, `G` = guide, `Enter` = watch
 
 ## Run it
 
@@ -40,13 +43,14 @@ Channels are just YouTube video IDs. Edit the `CHANNELS` array at the top of
 
 ```js
 const CHANNELS = [
-  { name: "Lo-Fi Beats", id: "jfKfPfyJRdk" },
-  { name: "Nature Relaxation", id: "BHACKCNDMW8" },
-  // add your own { name, id } ...
+  { num: 2, name: "LO-FI 24", id: "jfKfPfyJRdk",
+    shows: ["Late Night Beats", "Study Hall", "Midnight Loops"] },
+  // add your own { num, name, id, shows: [s1, s2, s3] } ...
 ];
 ```
 
-The `id` is the part after `watch?v=` in a YouTube URL.
+`id` is the part after `watch?v=` in a YouTube URL. `shows` are the three
+program names shown across the guide's time columns.
 
 ## Tech
 
