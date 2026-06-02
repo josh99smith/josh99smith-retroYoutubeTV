@@ -4,9 +4,11 @@
  * green on-screen display (channel + volume bar), static distortion between
  * channel changes, and a big lineup of popular YouTube videos.
  *
- * NOTE: live "trending" requires the YouTube Data API (an API key). To keep
- * this a zero-dependency static site, the lineup below is a curated set of
- * top / most-viewed YouTube videos. Swap in your own IDs freely.
+ * UX: tap any show in the guide to watch it, tap-to-unmute, channel "bug" +
+ * back-to-guide chip while watching, and direct channel-number entry.
+ *
+ * NOTE: live "trending" needs the YouTube Data API (a private key), so this
+ * zero-dependency static site uses a curated set of top / most-viewed videos.
  */
 
 const CHANNELS = [
@@ -29,29 +31,34 @@ const CHANNELS = [
   { num: 18, name: "SYNTHWAVE",  id: "4xDzrJKXOOY", shows: ["Neon Drive", "Outrun '89", "Midnight Run"] },
 ];
 
-const SEGMENTS = 15;   // volume bar segments
-const VOL_STEP = 10;   // volume change per press
+const SEGMENTS = 15;
+const VOL_STEP = 10;
+const DEFAULT_VOL = 60;
 
 let player;
 let playerReady = false;
 let index = 0;
 let isOn = false;
-let tuned = false;     // false = guide, true = full-screen watching
-let volume = 0;        // starts silent (muted) so it can autoplay on mobile
+let tuned = false;
+let volume = 0;        // starts muted so the video can autoplay on mobile
 
 const $ = (id) => document.getElementById(id);
 const els = {
   screen: $("screen"), guide: $("guide"),
   promoNow: $("promoNow"), promoClock: $("promoClock"), previewTag: $("previewTag"),
-  listingsRows: $("listingsRows"), noSignal: $("noSignal"),
+  previewWindow: $("previewWindow"),
+  listingsRows: $("listingsRows"), listingsViewport: $("listingsViewport"),
+  noSignal: $("noSignal"), nsText: $("nsText"),
+  chanBug: $("chanBug"), bugNum: $("bugNum"), bugName: $("bugName"), guideChip: $("guideChip"),
   osdCh: $("osdCh"), osdChNum: $("osdChNum"), osdChName: $("osdChName"),
-  osdVol: $("osdVol"), volBar: $("volBar"),
+  osdVol: $("osdVol"), osdSpk: $("osdSpk"), volBar: $("volBar"), unmuteBtn: $("unmuteBtn"),
   static: $("static"), powerOff: $("powerOff"), led: $("led"), hint: $("hint"),
   powerBtn: $("powerBtn"), chUp: $("chUp"), chDown: $("chDown"),
-  volUp: $("volUp"), volDown: $("volDown"),
-  guideBtn: $("guideBtn"), watchBtn: $("watchBtn"),
+  volUp: $("volUp"), volDown: $("volDown"), guideBtn: $("guideBtn"), watchBtn: $("watchBtn"),
   slot0: $("slot0"), slot1: $("slot1"), slot2: $("slot2"),
 };
+
+const wrap = (i) => (i % CHANNELS.length + CHANNELS.length) % CHANNELS.length;
 
 /* ---------- YouTube ---------- */
 function onYouTubeIframeAPIReady() {
@@ -59,11 +66,15 @@ function onYouTubeIframeAPIReady() {
     videoId: CHANNELS[index].id,
     playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1, mute: 1 },
     events: {
-      onReady: () => { playerReady = true; player.mute(); },
-      onStateChange: (e) => {
-        if (e.data === YT.PlayerState.PLAYING) { setStatic(false); els.noSignal.classList.remove("show"); }
+      onReady: () => {
+        playerReady = true;
+        player.mute();
+        if (isOn) playCurrent(); // start playing if powered on before the API loaded
       },
-      onError: () => { els.noSignal.classList.add("show"); setStatic(false); },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.PLAYING) { setStatic(false); hideNoSignal(); }
+      },
+      onError: () => showNoSignal("NO SIGNAL", "CHANNEL UNAVAILABLE"),
     },
   });
 }
@@ -85,7 +96,9 @@ function slotLabels() {
   return out;
 }
 
-function setStatic(on) { els.static.classList.toggle("on", on); }
+const setStatic = (on) => els.static.classList.toggle("on", on);
+const showNoSignal = (t, sub) => { els.nsText.innerHTML = `${t}<span>${sub}</span>`; els.noSignal.classList.add("show"); setStatic(false); };
+const hideNoSignal = () => els.noSignal.classList.remove("show");
 
 function updateClock() {
   const now = new Date();
@@ -102,10 +115,10 @@ function buildVolBar() {
     els.volBar.appendChild(s);
   }
 }
-
 function renderVolBar() {
   const filled = Math.round((volume / 100) * SEGMENTS);
   els.volBar.querySelectorAll(".seg").forEach((s, i) => s.classList.toggle("on", i < filled));
+  els.osdSpk.innerHTML = volume === 0 ? "&#128263;" : "&#9834;";
 }
 
 function renderListings() {
@@ -114,7 +127,8 @@ function renderListings() {
   els.slot1.textContent = labels[1];
   els.slot2.textContent = labels[2];
   const rowHTML = (ch, i) => `
-    <div class="row${i === index ? " current" : ""}" data-i="${i}">
+    <div class="row${i === index ? " current" : ""}" data-i="${i}" role="button" tabindex="0"
+         aria-label="Watch channel ${ch.num} ${ch.name}">
       <div class="cell cell-ch"><b>${ch.num}</b>${ch.name}</div>
       <div class="cell">${ch.shows[0]}</div>
       <div class="cell">${ch.shows[1]}</div>
@@ -128,6 +142,8 @@ function updatePromo() {
   const ch = CHANNELS[index];
   els.promoNow.textContent = `NOW: CH ${ch.num} ${ch.name} — ${ch.shows[0]}`;
   els.previewTag.textContent = `CH ${ch.num} ${ch.name}`;
+  els.bugNum.textContent = pad(ch.num);
+  els.bugName.textContent = ch.name;
   document.querySelectorAll(".row").forEach((r) => r.classList.toggle("current", Number(r.dataset.i) === index));
 }
 
@@ -140,7 +156,6 @@ function showChannelOSD() {
   clearTimeout(showChannelOSD._t);
   showChannelOSD._t = setTimeout(() => els.osdCh.classList.remove("show"), 2600);
 }
-
 function showVolumeOSD() {
   renderVolBar();
   els.osdVol.classList.add("show");
@@ -148,26 +163,20 @@ function showVolumeOSD() {
   showVolumeOSD._t = setTimeout(() => els.osdVol.classList.remove("show"), 1800);
 }
 
-/* ---------- Static / glitch between channels ---------- */
+/* ---------- Static / glitch ---------- */
 function glitch() {
   setStatic(true);
   els.screen.classList.add("glitching");
   clearTimeout(glitch._t);
-  glitch._t = setTimeout(() => {
-    setStatic(false);
-    els.screen.classList.remove("glitching");
-  }, 460);
+  glitch._t = setTimeout(() => { setStatic(false); els.screen.classList.remove("glitching"); }, 460);
 }
 
 /* ---------- Playback ---------- */
 function playCurrent() {
-  els.noSignal.classList.remove("show");
+  hideNoSignal();
   glitch();
   if (!playerReady) return;
-  setTimeout(() => {
-    player.loadVideoById(CHANNELS[index].id);
-    player.playVideo();
-  }, 220);
+  setTimeout(() => { player.loadVideoById(CHANNELS[index].id); player.playVideo(); }, 220);
 }
 
 /* ---------- Modes ---------- */
@@ -176,19 +185,26 @@ function showGuide() {
   els.screen.classList.remove("tuned");
   updatePromo();
 }
-
 function watchChannel() {
   tuned = true;
   els.screen.classList.add("tuned");
   showChannelOSD();
 }
-
+/* surf channels, keeping current view (guide vs. watching) */
 function changeChannel(delta) {
   if (!isOn) return;
-  index = (index + delta + CHANNELS.length) % CHANNELS.length;
+  index = wrap(index + delta);
   updatePromo();
   showChannelOSD();
   playCurrent();
+}
+/* jump to a specific channel index and watch it full-screen */
+function tuneTo(i) {
+  if (!isOn) return;
+  index = wrap(i);
+  updatePromo();
+  playCurrent();
+  watchChannel();
 }
 
 /* ---------- Volume ---------- */
@@ -198,9 +214,28 @@ function setVolume(v) {
     player.setVolume(volume);
     if (volume === 0) player.mute(); else player.unMute();
   }
+  els.screen.classList.toggle("show-unmute", isOn && volume === 0);
   showVolumeOSD();
 }
 const changeVolume = (d) => { if (isOn) setVolume(volume + d); };
+
+/* ---------- Channel-number entry ---------- */
+let entry = "";
+function pushDigit(d) {
+  if (!isOn) return;
+  entry += d;
+  els.osdChNum.textContent = entry.padStart(2, "0");
+  els.osdChName.textContent = "ENTER…";
+  els.osdCh.classList.add("show");
+  clearTimeout(pushDigit._t);
+  pushDigit._t = setTimeout(resolveEntry, 1300);
+}
+function resolveEntry() {
+  const num = Number(entry); entry = "";
+  const i = CHANNELS.findIndex((c) => c.num === num);
+  if (i >= 0) tuneTo(i);
+  else { els.osdChName.textContent = "NO CHANNEL"; setTimeout(() => els.osdCh.classList.remove("show"), 900); }
+}
 
 /* ---------- Power ---------- */
 function powerOn() {
@@ -208,12 +243,12 @@ function powerOn() {
   els.led.classList.add("on");
   els.powerOff.classList.add("hidden");
   els.screen.classList.remove("off", "turning-off");
-  els.hint.innerHTML = "CH to browse &middot; <b>VOL</b> to raise sound &middot; <b>WATCH</b> / <b>GUIDE</b> to switch view";
+  els.hint.innerHTML = "Tap a show to watch &middot; <b>VOL</b> for sound &middot; <b>GUIDE</b> to return";
   showGuide();
   showChannelOSD();
+  els.screen.classList.toggle("show-unmute", volume === 0);
   playCurrent();
 }
-
 function powerOff() {
   isOn = false; tuned = false;
   els.led.classList.remove("on");
@@ -221,7 +256,8 @@ function powerOff() {
   setStatic(false);
   els.osdCh.classList.remove("show");
   els.osdVol.classList.remove("show");
-  els.noSignal.classList.remove("show");
+  els.screen.classList.remove("show-unmute");
+  hideNoSignal();
   els.screen.classList.add("turning-off");
   setTimeout(() => {
     els.screen.classList.add("off");
@@ -230,8 +266,14 @@ function powerOff() {
   }, 450);
   els.hint.innerHTML = "Press <b>POWER</b> to turn on the TV";
 }
-
 const togglePower = () => (isOn ? powerOff() : powerOn());
+
+/* ---------- Guide scroll: pause while the user is interacting ---------- */
+function pauseScroll() {
+  els.listingsRows.classList.add("paused");
+  clearTimeout(pauseScroll._t);
+  pauseScroll._t = setTimeout(() => els.listingsRows.classList.remove("paused"), 2600);
+}
 
 /* ---------- Events ---------- */
 els.powerBtn.addEventListener("click", togglePower);
@@ -241,15 +283,32 @@ els.volUp.addEventListener("click", () => changeVolume(VOL_STEP));
 els.volDown.addEventListener("click", () => changeVolume(-VOL_STEP));
 els.guideBtn.addEventListener("click", () => { if (isOn) showGuide(); });
 els.watchBtn.addEventListener("click", () => { if (isOn) watchChannel(); });
+els.guideChip.addEventListener("click", () => { if (isOn) showGuide(); });
+els.unmuteBtn.addEventListener("click", () => setVolume(DEFAULT_VOL));
+els.previewWindow.addEventListener("click", () => { if (isOn) tuneTo(index); });
+
+// tap a show in the guide to watch it
+els.listingsViewport.addEventListener("pointerdown", pauseScroll);
+els.listingsRows.addEventListener("click", (e) => {
+  const row = e.target.closest(".row");
+  if (row) tuneTo(Number(row.dataset.i));
+});
+els.listingsRows.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const row = e.target.closest(".row");
+  if (row) { e.preventDefault(); tuneTo(Number(row.dataset.i)); }
+});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "p" || e.key === "P") return togglePower();
   if (!isOn) return;
+  if (e.key >= "0" && e.key <= "9") return pushDigit(e.key);
   switch (e.key) {
-    case "ArrowUp":    changeChannel(1); break;
-    case "ArrowDown":  changeChannel(-1); break;
+    case "ArrowUp":    e.preventDefault(); changeChannel(1); break;
+    case "ArrowDown":  e.preventDefault(); changeChannel(-1); break;
     case "ArrowRight": case "+": case "=": changeVolume(VOL_STEP); break;
     case "ArrowLeft":  case "-": changeVolume(-VOL_STEP); break;
+    case "m": case "M": setVolume(volume === 0 ? DEFAULT_VOL : 0); break;
     case "g": case "G": showGuide(); break;
     case "Enter":      watchChannel(); break;
   }

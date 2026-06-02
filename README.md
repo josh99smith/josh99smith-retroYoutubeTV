@@ -13,11 +13,16 @@ it full-screen, complete with a 90s channel banner.
 
 - 📼 Chunky 90s black-plastic cabinet (FUNTRON "STEREO · COLOR"), speaker grille, power LED
 - 🗂️ **TV-Guide channel**: scrolling blue listings grid + live preview window + promo panel + on-screen clock
-- 📺 Full-screen "tune in" mode with a retro **channel banner** (CH 07 SYNTHWAVE)
-- 📡 **Static / noise burst** when changing channels
-- 🔌 CRT "collapse to a dot" power-off animation, scanlines, curved-glass glare
-- 🎚️ Working **POWER**, **CH ▲/▼**, **GUIDE**, **WATCH**, and **volume** controls
-- ⌨️ Keyboard: `P` = power, ↑/↓ = channel, `G` = guide, `Enter` = watch
+- 👆 **Tap any show** in the guide to watch it (auto-scroll pauses while you browse)
+- 🟢 **90s green OSD**: chunky channel display + segmented volume bar
+- 📺 Full-screen watch mode with a translucent **channel "bug"** and a **‹ GUIDE** chip to go back
+- 🔇 Mobile-friendly **tap-to-unmute** prompt (video autoplays muted)
+- 🔢 **Direct channel entry** — type a channel number on the keyboard
+- 📡 **Static distortion** on channel change (burst + rolling glitch bar + jitter)
+- 📺 **NO SIGNAL** color-bars fallback for any non-embeddable video
+- 🔌 CRT power-off animation, scanlines, curved-glass glare
+- ♿ Keyboard-accessible (focus styles, `role=button` rows) + `prefers-reduced-motion` support
+- ⌨️ Keys: `P` power · ↑/↓ channel · ←/→ volume · `M` mute · digits = channel · `G` guide · `Enter` watch
 
 ## Run it
 

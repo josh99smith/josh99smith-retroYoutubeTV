@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0d" />
   <title>Retro YouTube TV — 90s Guide</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -19,15 +20,16 @@
             <!-- NO SIGNAL fallback (shown if a video can't embed) -->
             <div class="no-signal" id="noSignal">
               <div class="ns-bars"></div>
-              <div class="ns-text">NO&nbsp;SIGNAL<span>PLEASE STAND BY</span></div>
+              <div class="ns-text" id="nsText">NO&nbsp;SIGNAL<span>PLEASE STAND BY</span></div>
             </div>
 
             <!-- ===== Prevue-style on-screen guide ===== -->
             <div class="guide" id="guide">
-              <div class="preview-window" id="previewWindow">
+              <button class="preview-window" id="previewWindow" aria-label="Watch the channel shown in the preview">
                 <div class="preview-frame"></div>
                 <div class="preview-tag" id="previewTag">NOW PLAYING</div>
-              </div>
+                <div class="preview-watch">▶ WATCH</div>
+              </button>
 
               <div class="promo">
                 <div class="promo-logo">
@@ -35,7 +37,7 @@
                   <span class="promo-logo-bot">GUIDE&nbsp;<b>+</b></span>
                 </div>
                 <div class="promo-now" id="promoNow">—</div>
-                <div class="promo-msg">CH &#9650;&#9660; to browse &middot; WATCH to tune in</div>
+                <div class="promo-msg">Tap a show to watch &middot; CH&nbsp;&#9650;&#9660; to surf</div>
                 <div class="promo-clock" id="promoClock">--:-- --</div>
               </div>
 
@@ -46,23 +48,29 @@
                   <div class="lh-time" id="slot1">8:30 PM</div>
                   <div class="lh-time" id="slot2">9:00 PM</div>
                 </div>
-                <div class="listings-viewport">
+                <div class="listings-viewport" id="listingsViewport">
                   <div class="listings-rows" id="listingsRows"><!-- rows injected --></div>
                 </div>
               </div>
             </div>
+
+            <!-- channel "bug" + back-to-guide chip (watch mode) -->
+            <div class="chan-bug" id="chanBug"><b id="bugNum">02</b><span id="bugName">CHANNEL</span></div>
+            <button class="guide-chip" id="guideChip" aria-label="Back to guide">&#8249;&nbsp;GUIDE</button>
 
             <!-- ===== 90s green on-screen display ===== -->
             <div class="osd osd-ch" id="osdCh">
               CH&nbsp;<span id="osdChNum">02</span>
               <span class="nm" id="osdChName">CHANNEL</span>
             </div>
-
             <div class="osd osd-vol" id="osdVol">
-              <span class="spk">&#9834;</span>
+              <span class="spk" id="osdSpk">&#9834;</span>
               <span class="lbl">VOL</span>
               <div class="vol-bar" id="volBar"><!-- segments injected --></div>
             </div>
+
+            <!-- tap to unmute (mobile-friendly) -->
+            <button class="unmute" id="unmuteBtn" aria-label="Tap to unmute">&#128263;&nbsp;TAP TO UNMUTE</button>
 
             <!-- distortion bits -->
             <div class="rollbar"></div>
@@ -87,20 +95,20 @@
           </div>
 
           <div class="buttons">
-            <button class="btn power" id="powerBtn" title="Power (P)">
+            <button class="btn power" id="powerBtn" aria-label="Power" title="Power (P)">
               <span class="led" id="led"></span>POWER
             </button>
             <div class="btn-row">
-              <button class="btn" id="chDown" title="Channel down">CH&nbsp;&#9660;</button>
-              <button class="btn" id="chUp" title="Channel up">CH&nbsp;&#9650;</button>
+              <button class="btn" id="chDown" aria-label="Channel down" title="Channel down">CH&nbsp;&#9660;</button>
+              <button class="btn" id="chUp" aria-label="Channel up" title="Channel up">CH&nbsp;&#9650;</button>
             </div>
             <div class="btn-row">
-              <button class="btn" id="volDown" title="Volume down">VOL&nbsp;&#9660;</button>
-              <button class="btn" id="volUp" title="Volume up">VOL&nbsp;&#9650;</button>
+              <button class="btn" id="volDown" aria-label="Volume down" title="Volume down">VOL&nbsp;&#9660;</button>
+              <button class="btn" id="volUp" aria-label="Volume up" title="Volume up">VOL&nbsp;&#9650;</button>
             </div>
             <div class="btn-row">
-              <button class="btn" id="guideBtn" title="Toggle guide (G)">GUIDE</button>
-              <button class="btn" id="watchBtn" title="Watch channel (Enter)">WATCH</button>
+              <button class="btn" id="guideBtn" aria-label="Show guide" title="Toggle guide (G)">GUIDE</button>
+              <button class="btn" id="watchBtn" aria-label="Watch channel" title="Watch channel (Enter)">WATCH</button>
             </div>
           </div>
         </div>
