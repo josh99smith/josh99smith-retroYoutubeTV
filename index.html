@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retro YouTube TV</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="room">
+    <div class="tv">
+      <!-- Wooden cabinet -->
+      <div class="cabinet">
+        <!-- Screen area -->
+        <div class="screen-bezel">
+          <div class="screen" id="screen">
+            <!-- YouTube player mounts here -->
+            <div id="player"></div>
+
+            <!-- Static / noise overlay shown while switching channels -->
+            <div class="static" id="static"></div>
+
+            <!-- Scanlines + CRT glare -->
+            <div class="scanlines"></div>
+            <div class="glare"></div>
+
+            <!-- On-screen channel display -->
+            <div class="osd" id="osd">CH 01</div>
+
+            <!-- Power-off state -->
+            <div class="power-off" id="powerOff">
+              <div class="power-dot"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Control panel -->
+        <div class="controls">
+          <div class="brand">RetroTron&nbsp;<span>2600</span></div>
+
+          <div class="knobs">
+            <button class="knob power" id="powerBtn" title="Power">
+              <span class="knob-label">PWR</span>
+            </button>
+
+            <div class="channel-cluster">
+              <button class="knob" id="chDown" title="Channel down">
+                <span class="arrow">&#9664;</span>
+              </button>
+              <div class="channel-readout" id="channelReadout">01</div>
+              <button class="knob" id="chUp" title="Channel up">
+                <span class="arrow">&#9654;</span>
+              </button>
+            </div>
+
+            <div class="volume-cluster">
+              <span class="knob-label">VOL</span>
+              <input type="range" id="volume" min="0" max="100" value="60" />
+            </div>
+          </div>
+
+          <div class="speaker">
+            <div class="speaker-grille"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cabinet legs -->
+      <div class="legs">
+        <div class="leg"></div>
+        <div class="leg"></div>
+      </div>
+    </div>
+
+    <div class="now-playing" id="nowPlaying">&mdash;</div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="app.js"></script>
+</body>
+</html>
