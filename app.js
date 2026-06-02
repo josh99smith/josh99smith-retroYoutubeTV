@@ -1,37 +1,55 @@
 /* Retro YouTube TV — 90s TV Guide edition
  *
- * A black-plastic 90s television whose default screen is a Prevue/TV-Guide
- * style channel: a live video PREVIEW window up top and an auto-scrolling
- * program LISTINGS grid below. Tune to a channel with WATCH to go full screen.
+ * A black-plastic 90s television with a Prevue/TV-Guide home screen, a 90s
+ * green on-screen display (channel + volume bar), static distortion between
+ * channel changes, and a big lineup of popular YouTube videos.
  *
- * Channels are YouTube video IDs plus 3 "program" names for the grid.
+ * NOTE: live "trending" requires the YouTube Data API (an API key). To keep
+ * this a zero-dependency static site, the lineup below is a curated set of
+ * top / most-viewed YouTube videos. Swap in your own IDs freely.
  */
 
 const CHANNELS = [
-  { num: 2,  name: "LO-FI 24",     id: "jfKfPfyJRdk", shows: ["Late Night Beats", "Study Hall", "Midnight Loops"] },
-  { num: 4,  name: "NATURE HD",    id: "BHACKCNDMW8", shows: ["Wild Coastlines", "Rainforest Live", "Aerial Earth"] },
-  { num: 5,  name: "CHILL FM",     id: "5qap5aO4i9A", shows: ["Coffee House", "Easy Listening", "After Hours"] },
-  { num: 7,  name: "SYNTHWAVE",    id: "4xDzrJKXOOY", shows: ["Neon Drive", "Midnight Run", "Outrun '89"] },
-  { num: 9,  name: "JAZZ NITE",    id: "Dx5qFachd3A", shows: ["Smooth Sets", "Blue Note Hour", "Late Lounge"] },
-  { num: 11, name: "COSMOS",       id: "21X5lGlDOfg", shows: ["Live From Orbit", "Blue Marble", "Deep Space"] },
-  { num: 13, name: "PIANO PM",     id: "4oStw0r33so", shows: ["Evening Keys", "Soft Classics", "Nocturnes"] },
+  { num: 2,  name: "LO-FI 24",   id: "jfKfPfyJRdk", shows: ["Late Night Beats", "Study Hall", "Midnight Loops"] },
+  { num: 3,  name: "NASA LIVE",  id: "21X5lGlDOfg", shows: ["Live From Orbit", "Blue Marble", "Deep Space"] },
+  { num: 4,  name: "NATURE HD",  id: "BHACKCNDMW8", shows: ["Wild Coastlines", "Aerial Earth", "Rainforest"] },
+  { num: 5,  name: "GANGNAM TV", id: "9bZkp7q19f0", shows: ["PSY — Gangnam Style", "K-Pop Hour", "Viral Classics"] },
+  { num: 6,  name: "DESPACITO",  id: "kJQP7kiw5Fk", shows: ["Luis Fonsi — Despacito", "Latin Hits", "Top Charts"] },
+  { num: 7,  name: "ED SHEERAN", id: "JGwWNGJdvx8", shows: ["Shape of You", "Pop Rotation", "Top 40"] },
+  { num: 8,  name: "THROWBACK",  id: "RgKAFK5djSk", shows: ["See You Again", "Throwback Jams", "Top 40"] },
+  { num: 9,  name: "FUNK FM",    id: "OPf0YbXqDm0", shows: ["Uptown Funk", "Feel-Good Hits", "Dance Party"] },
+  { num: 10, name: "MAROON 5",   id: "09R8_2nJtjg", shows: ["Sugar", "Pop Rotation", "Top 40"] },
+  { num: 11, name: "KATY PERRY", id: "CevxZvSJLk8", shows: ["Roar", "Pop Anthems", "Top 40"] },
+  { num: 12, name: "T-SWIFT",    id: "nfWlot6h_JM", shows: ["Shake It Off", "Pop Rotation", "Top 40"] },
+  { num: 13, name: "DRAGONS TV", id: "7wtfhZwyrcc", shows: ["Believer", "Rock Hour", "Top 40"] },
+  { num: 14, name: "ADELE",      id: "YQHsXMglC9A", shows: ["Hello", "Soul & Ballads", "Top 40"] },
+  { num: 15, name: "BILLIE",     id: "DyDfgMOUjCI", shows: ["Bad Guy", "Alt Pop", "New Hits"] },
+  { num: 16, name: "WALKER FM",  id: "60ItHLz5WEA", shows: ["Faded", "EDM Hour", "Dance Party"] },
+  { num: 17, name: "KIDS ZONE",  id: "XqZsoesa55w", shows: ["Baby Shark", "Cartoon Hits", "All Ages"] },
+  { num: 18, name: "SYNTHWAVE",  id: "4xDzrJKXOOY", shows: ["Neon Drive", "Outrun '89", "Midnight Run"] },
 ];
+
+const SEGMENTS = 15;   // volume bar segments
+const VOL_STEP = 10;   // volume change per press
 
 let player;
 let playerReady = false;
-let index = 0;        // currently highlighted / tuned channel
+let index = 0;
 let isOn = false;
-let tuned = false;    // false = guide view, true = watching full screen
+let tuned = false;     // false = guide, true = full-screen watching
+let volume = 0;        // starts silent (muted) so it can autoplay on mobile
 
 const $ = (id) => document.getElementById(id);
 const els = {
-  screen: $("screen"), guide: $("guide"), player: $("player"),
+  screen: $("screen"), guide: $("guide"),
   promoNow: $("promoNow"), promoClock: $("promoClock"), previewTag: $("previewTag"),
-  listingsRows: $("listingsRows"),
-  banner: $("banner"), bannerNum: $("bannerNum"), bannerName: $("bannerName"),
+  listingsRows: $("listingsRows"), noSignal: $("noSignal"),
+  osdCh: $("osdCh"), osdChNum: $("osdChNum"), osdChName: $("osdChName"),
+  osdVol: $("osdVol"), volBar: $("volBar"),
   static: $("static"), powerOff: $("powerOff"), led: $("led"), hint: $("hint"),
   powerBtn: $("powerBtn"), chUp: $("chUp"), chDown: $("chDown"),
-  guideBtn: $("guideBtn"), watchBtn: $("watchBtn"), volume: $("volume"),
+  volUp: $("volUp"), volDown: $("volDown"),
+  guideBtn: $("guideBtn"), watchBtn: $("watchBtn"),
   slot0: $("slot0"), slot1: $("slot1"), slot2: $("slot2"),
 };
 
@@ -41,11 +59,11 @@ function onYouTubeIframeAPIReady() {
     videoId: CHANNELS[index].id,
     playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1, mute: 1 },
     events: {
-      onReady: () => {
-        playerReady = true;
-        player.setVolume(Number(els.volume.value));
+      onReady: () => { playerReady = true; player.mute(); },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.PLAYING) { setStatic(false); els.noSignal.classList.remove("show"); }
       },
-      onStateChange: (e) => { if (e.data === YT.PlayerState.PLAYING) setStatic(false); },
+      onError: () => { els.noSignal.classList.add("show"); setStatic(false); },
     },
   });
 }
@@ -76,12 +94,25 @@ function updateClock() {
   els.promoClock.textContent = `${h}:${pad(now.getMinutes())} ${ap}`;
 }
 
+function buildVolBar() {
+  els.volBar.innerHTML = "";
+  for (let i = 0; i < SEGMENTS; i++) {
+    const s = document.createElement("div");
+    s.className = "seg";
+    els.volBar.appendChild(s);
+  }
+}
+
+function renderVolBar() {
+  const filled = Math.round((volume / 100) * SEGMENTS);
+  els.volBar.querySelectorAll(".seg").forEach((s, i) => s.classList.toggle("on", i < filled));
+}
+
 function renderListings() {
   const labels = slotLabels();
   els.slot0.textContent = labels[0];
   els.slot1.textContent = labels[1];
   els.slot2.textContent = labels[2];
-
   const rowHTML = (ch, i) => `
     <div class="row${i === index ? " current" : ""}" data-i="${i}">
       <div class="cell cell-ch"><b>${ch.num}</b>${ch.name}</div>
@@ -89,60 +120,87 @@ function renderListings() {
       <div class="cell">${ch.shows[1]}</div>
       <div class="cell">${ch.shows[2]}</div>
     </div>`;
-  // duplicate the list so the vertical scroll loops seamlessly
   const once = CHANNELS.map(rowHTML).join("");
-  els.listingsRows.innerHTML = once + once;
+  els.listingsRows.innerHTML = once + once; // duplicate for seamless loop
 }
 
 function updatePromo() {
   const ch = CHANNELS[index];
   els.promoNow.textContent = `NOW: CH ${ch.num} ${ch.name} — ${ch.shows[0]}`;
   els.previewTag.textContent = `CH ${ch.num} ${ch.name}`;
-  // re-highlight current row without rebuilding scroll position feel
-  document.querySelectorAll(".row").forEach((r) => {
-    r.classList.toggle("current", Number(r.dataset.i) === index);
-  });
+  document.querySelectorAll(".row").forEach((r) => r.classList.toggle("current", Number(r.dataset.i) === index));
 }
 
-function playCurrent() {
-  if (!playerReady) return;
-  setStatic(true);
-  player.loadVideoById(CHANNELS[index].id);
-  player.playVideo();
-  setTimeout(() => setStatic(false), 1400);
-}
-
-function showBanner() {
+/* ---------- 90s OSD ---------- */
+function showChannelOSD() {
   const ch = CHANNELS[index];
-  els.bannerNum.textContent = pad(ch.num);
-  els.bannerName.textContent = ch.name;
-  els.banner.classList.add("show");
-  clearTimeout(showBanner._t);
-  showBanner._t = setTimeout(() => els.banner.classList.remove("show"), 3000);
+  els.osdChNum.textContent = pad(ch.num);
+  els.osdChName.textContent = ch.name;
+  els.osdCh.classList.add("show");
+  clearTimeout(showChannelOSD._t);
+  showChannelOSD._t = setTimeout(() => els.osdCh.classList.remove("show"), 2600);
+}
+
+function showVolumeOSD() {
+  renderVolBar();
+  els.osdVol.classList.add("show");
+  clearTimeout(showVolumeOSD._t);
+  showVolumeOSD._t = setTimeout(() => els.osdVol.classList.remove("show"), 1800);
+}
+
+/* ---------- Static / glitch between channels ---------- */
+function glitch() {
+  setStatic(true);
+  els.screen.classList.add("glitching");
+  clearTimeout(glitch._t);
+  glitch._t = setTimeout(() => {
+    setStatic(false);
+    els.screen.classList.remove("glitching");
+  }, 460);
+}
+
+/* ---------- Playback ---------- */
+function playCurrent() {
+  els.noSignal.classList.remove("show");
+  glitch();
+  if (!playerReady) return;
+  setTimeout(() => {
+    player.loadVideoById(CHANNELS[index].id);
+    player.playVideo();
+  }, 220);
 }
 
 /* ---------- Modes ---------- */
 function showGuide() {
   tuned = false;
   els.screen.classList.remove("tuned");
-  els.banner.classList.remove("show");
-  if (playerReady) player.setVolume(Number(els.volume.value));
   updatePromo();
 }
 
 function watchChannel() {
   tuned = true;
   els.screen.classList.add("tuned");
-  showBanner();
+  showChannelOSD();
 }
 
 function changeChannel(delta) {
   if (!isOn) return;
   index = (index + delta + CHANNELS.length) % CHANNELS.length;
   updatePromo();
+  showChannelOSD();
   playCurrent();
-  if (tuned) showBanner();
 }
+
+/* ---------- Volume ---------- */
+function setVolume(v) {
+  volume = Math.max(0, Math.min(100, v));
+  if (playerReady) {
+    player.setVolume(volume);
+    if (volume === 0) player.mute(); else player.unMute();
+  }
+  showVolumeOSD();
+}
+const changeVolume = (d) => { if (isOn) setVolume(volume + d); };
 
 /* ---------- Power ---------- */
 function powerOn() {
@@ -150,8 +208,9 @@ function powerOn() {
   els.led.classList.add("on");
   els.powerOff.classList.add("hidden");
   els.screen.classList.remove("off", "turning-off");
-  els.hint.innerHTML = "Browse with <b>CH</b> &middot; <b>WATCH</b> to tune in &middot; <b>GUIDE</b> to return";
+  els.hint.innerHTML = "CH to browse &middot; <b>VOL</b> to raise sound &middot; <b>WATCH</b> / <b>GUIDE</b> to switch view";
   showGuide();
+  showChannelOSD();
   playCurrent();
 }
 
@@ -160,8 +219,10 @@ function powerOff() {
   els.led.classList.remove("on");
   if (playerReady) player.pauseVideo();
   setStatic(false);
+  els.osdCh.classList.remove("show");
+  els.osdVol.classList.remove("show");
+  els.noSignal.classList.remove("show");
   els.screen.classList.add("turning-off");
-  els.banner.classList.remove("show");
   setTimeout(() => {
     els.screen.classList.add("off");
     els.screen.classList.remove("turning-off", "tuned");
@@ -176,25 +237,28 @@ const togglePower = () => (isOn ? powerOff() : powerOn());
 els.powerBtn.addEventListener("click", togglePower);
 els.chUp.addEventListener("click", () => changeChannel(1));
 els.chDown.addEventListener("click", () => changeChannel(-1));
+els.volUp.addEventListener("click", () => changeVolume(VOL_STEP));
+els.volDown.addEventListener("click", () => changeVolume(-VOL_STEP));
 els.guideBtn.addEventListener("click", () => { if (isOn) showGuide(); });
 els.watchBtn.addEventListener("click", () => { if (isOn) watchChannel(); });
-els.volume.addEventListener("input", () => {
-  if (!playerReady) return;
-  player.setVolume(Number(els.volume.value));
-  if (Number(els.volume.value) > 0) player.unMute();
-});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "p" || e.key === "P") return togglePower();
   if (!isOn) return;
-  if (e.key === "ArrowUp")   changeChannel(1);
-  if (e.key === "ArrowDown") changeChannel(-1);
-  if (e.key === "g" || e.key === "G") showGuide();
-  if (e.key === "Enter") watchChannel();
+  switch (e.key) {
+    case "ArrowUp":    changeChannel(1); break;
+    case "ArrowDown":  changeChannel(-1); break;
+    case "ArrowRight": case "+": case "=": changeVolume(VOL_STEP); break;
+    case "ArrowLeft":  case "-": changeVolume(-VOL_STEP); break;
+    case "g": case "G": showGuide(); break;
+    case "Enter":      watchChannel(); break;
+  }
 });
 
 /* ---------- Init ---------- */
+buildVolBar();
 renderListings();
+renderVolBar();
 updateClock();
 updatePromo();
 setInterval(updateClock, 1000 * 15);

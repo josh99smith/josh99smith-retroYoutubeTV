@@ -16,9 +16,14 @@
             <!-- YouTube player (re-positioned for guide vs. full-screen) -->
             <div id="player"></div>
 
+            <!-- NO SIGNAL fallback (shown if a video can't embed) -->
+            <div class="no-signal" id="noSignal">
+              <div class="ns-bars"></div>
+              <div class="ns-text">NO&nbsp;SIGNAL<span>PLEASE STAND BY</span></div>
+            </div>
+
             <!-- ===== Prevue-style on-screen guide ===== -->
             <div class="guide" id="guide">
-              <!-- Top: preview window (left) + promo panel (right) -->
               <div class="preview-window" id="previewWindow">
                 <div class="preview-frame"></div>
                 <div class="preview-tag" id="previewTag">NOW PLAYING</div>
@@ -30,11 +35,10 @@
                   <span class="promo-logo-bot">GUIDE&nbsp;<b>+</b></span>
                 </div>
                 <div class="promo-now" id="promoNow">—</div>
-                <div class="promo-msg">Use the CH buttons to browse &middot; press WATCH to tune in</div>
+                <div class="promo-msg">CH &#9650;&#9660; to browse &middot; WATCH to tune in</div>
                 <div class="promo-clock" id="promoClock">--:-- --</div>
               </div>
 
-              <!-- Bottom: scrolling listings grid -->
               <div class="listings">
                 <div class="listings-head">
                   <div class="lh-channel">CHANNEL</div>
@@ -48,23 +52,32 @@
               </div>
             </div>
 
-            <!-- Channel banner shown briefly when tuning -->
-            <div class="banner" id="banner">
-              <span class="banner-num" id="bannerNum">02</span>
-              <span class="banner-name" id="bannerName">CHANNEL</span>
+            <!-- ===== 90s green on-screen display ===== -->
+            <div class="osd osd-ch" id="osdCh">
+              CH&nbsp;<span id="osdChNum">02</span>
+              <span class="nm" id="osdChName">CHANNEL</span>
             </div>
+
+            <div class="osd osd-vol" id="osdVol">
+              <span class="spk">&#9834;</span>
+              <span class="lbl">VOL</span>
+              <div class="vol-bar" id="volBar"><!-- segments injected --></div>
+            </div>
+
+            <!-- distortion bits -->
+            <div class="rollbar"></div>
+            <div class="static" id="static"></div>
 
             <!-- CRT scanlines + glare -->
             <div class="scanlines"></div>
             <div class="glare"></div>
 
-            <!-- static + power-off -->
-            <div class="static" id="static"></div>
+            <!-- power-off -->
             <div class="power-off" id="powerOff"></div>
           </div>
         </div>
 
-        <!-- Control strip (90s style: speaker + buttons) -->
+        <!-- Control strip -->
         <div class="front">
           <div class="speaker"><div class="grille"></div></div>
 
@@ -81,11 +94,13 @@
               <button class="btn" id="chDown" title="Channel down">CH&nbsp;&#9660;</button>
               <button class="btn" id="chUp" title="Channel up">CH&nbsp;&#9650;</button>
             </div>
-            <button class="btn wide" id="guideBtn" title="Toggle guide (G)">GUIDE</button>
-            <button class="btn wide" id="watchBtn" title="Watch channel (Enter)">WATCH</button>
-            <div class="vol">
-              <span>VOL</span>
-              <input type="range" id="volume" min="0" max="100" value="60" />
+            <div class="btn-row">
+              <button class="btn" id="volDown" title="Volume down">VOL&nbsp;&#9660;</button>
+              <button class="btn" id="volUp" title="Volume up">VOL&nbsp;&#9650;</button>
+            </div>
+            <div class="btn-row">
+              <button class="btn" id="guideBtn" title="Toggle guide (G)">GUIDE</button>
+              <button class="btn" id="watchBtn" title="Watch channel (Enter)">WATCH</button>
             </div>
           </div>
         </div>
