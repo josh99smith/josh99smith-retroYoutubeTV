@@ -11,25 +11,62 @@
  * zero-dependency static site uses a curated set of top / most-viewed videos.
  */
 
-/* Lineup favors content that embeds reliably: 24/7 live radio streams and
- * Creative-Commons films play almost everywhere. A few popular music videos
- * are included too; if any refuses to embed you'll see the NO SIGNAL card. */
+/* Each "channel" is a real top YouTube channel. We play the channel's uploads
+ * playlist (the UC… channel id maps to a UU… uploads playlist), so a channel
+ * shows a rotating feed of its actual videos — latest first.
+ *
+ * A few channels may have embedding disabled on some videos; those show the
+ * NO SIGNAL card and (while watching) auto-surf to the next channel.
+ */
 const CHANNELS = [
-  { num: 2,  name: "LO-FI 24",   id: "jfKfPfyJRdk", shows: ["Beats to Relax", "Study Hall", "Midnight Loops"] },
-  { num: 3,  name: "SYNTHWAVE",  id: "4xDzrJKXOOY", shows: ["Neon Drive", "Outrun '89", "Midnight Run"] },
-  { num: 4,  name: "CHILL FM",   id: "rUxyKA_-grg", shows: ["Lounge Hour", "Easy Listening", "After Dark"] },
-  { num: 5,  name: "JAZZ NITE",  id: "Dx5qFachd3A", shows: ["Smooth Sets", "Blue Note Hour", "Late Lounge"] },
-  { num: 6,  name: "CARTOON",    id: "aqz-KE-bpKQ", shows: ["Big Buck Bunny", "Matinee", "All Ages"] },
-  { num: 7,  name: "NATURE HD",  id: "BHACKCNDMW8", shows: ["Wild Coastlines", "Aerial Earth", "Rainforest"] },
-  { num: 8,  name: "COFFEE TV",  id: "1fueZCTYkpA", shows: ["Morning Brew", "Bossa Cafe", "Slow Mornings"] },
-  { num: 9,  name: "GANGNAM TV", id: "9bZkp7q19f0", shows: ["PSY — Gangnam Style", "K-Pop Hour", "Viral Classics"] },
-  { num: 10, name: "DESPACITO",  id: "kJQP7kiw5Fk", shows: ["Luis Fonsi — Despacito", "Latin Hits", "Top Charts"] },
-  { num: 11, name: "FUNK FM",    id: "OPf0YbXqDm0", shows: ["Uptown Funk", "Feel-Good Hits", "Dance Party"] },
-  { num: 12, name: "KATY PERRY", id: "CevxZvSJLk8", shows: ["Roar", "Pop Anthems", "Top 40"] },
-  { num: 13, name: "DRAGONS TV", id: "7wtfhZwyrcc", shows: ["Believer", "Rock Hour", "Top 40"] },
-  { num: 14, name: "WALKER FM",  id: "60ItHLz5WEA", shows: ["Faded", "EDM Hour", "Dance Party"] },
-  { num: 15, name: "KIDS ZONE",  id: "XqZsoesa55w", shows: ["Baby Shark", "Cartoon Hits", "All Ages"] },
+  { num: 2,  name: "MR BEAST",      ch: "UCX6OQ3DkcsbYNE6H8uQQuVA", cat: "ENTERTAINMENT" },
+  { num: 3,  name: "LOFI GIRL",     ch: "UCSJ4gkVC6NrvII8umztf0Ow", cat: "MUSIC • LIVE" },
+  { num: 4,  name: "DUDE PERFECT",  ch: "UCRijo3ddMTht_IHyNSNXpNQ", cat: "SPORTS" },
+  { num: 5,  name: "MARK ROBER",    ch: "UCY1kMZp36IQSyNx_9h4mpCg", cat: "SCIENCE" },
+  { num: 6,  name: "KURZGESAGT",    ch: "UCsXVk37bltHxD1rDPwtNM8Q", cat: "SCIENCE" },
+  { num: 7,  name: "VERITASIUM",    ch: "UCHnyfMqiRRG1u-2MsSQLbXA", cat: "SCIENCE" },
+  { num: 8,  name: "NASA",          ch: "UCLA_DiR1FfKNvjuUpBHmylQ", cat: "SPACE" },
+  { num: 9,  name: "NAT GEO",       ch: "UCpVm7bg6pXKo1Pr6k5kxG9A", cat: "NATURE" },
+  { num: 10, name: "BBC EARTH",     ch: "UCwmZiChSryoWQCZMIQezgTg", cat: "NATURE" },
+  { num: 11, name: "TED",           ch: "UCAuUUnT6oDeKwE6v1NGQxug", cat: "EDUCATION" },
+  { num: 12, name: "VOX",           ch: "UCLXo7UDZvByw2ixzpQCufnA", cat: "NEWS" },
+  { num: 13, name: "VSAUCE",        ch: "UC6nSFpj9HTCZ5t-N3Rm3-HA", cat: "SCIENCE" },
+  { num: 14, name: "KHAN ACADEMY",  ch: "UC4a-Gbdw7vOaccHmFo40b9g", cat: "EDUCATION" },
+  { num: 15, name: "MKBHD",         ch: "UCBJycsmduvYEL83R_U4JriQ", cat: "TECH" },
+  { num: 16, name: "MRWHOSEBOSS",   ch: "UCMiJRAwDNSNzuYeN2uWa0pA", cat: "TECH" },
+  { num: 17, name: "LINUS TECH",    ch: "UCXuqSBlHAE6Xw-yeJA0Tunw", cat: "TECH" },
+  { num: 18, name: "APPLE",         ch: "UCE_M8A5yxnLfW0KghEeajjw", cat: "TECH" },
+  { num: 19, name: "PEWDIEPIE",     ch: "UC-lHJZR3Gqxm24_Vd_AJ5Yw", cat: "GAMING" },
+  { num: 20, name: "SMOSH",         ch: "UCY30JRSgfhYXA6i6xX1erWg", cat: "COMEDY" },
+  { num: 21, name: "WWE",           ch: "UCJ5v_MCY6GNUBTO8-D3XoAg", cat: "SPORTS" },
+  { num: 22, name: "NBA",           ch: "UCWJ2lWNubArHWmf3FIHbfcQ", cat: "SPORTS" },
+  { num: 23, name: "NFL",           ch: "UCDVYQ4Zhbm3S2dlz7P1GBDg", cat: "SPORTS" },
+  { num: 24, name: "REAL MADRID",   ch: "UCWV3obpZVGgJ3j9FVhEjF2Q", cat: "SOCCER" },
+  { num: 25, name: "COCOMELON",     ch: "UCbCmjCuTUZos6Inko4u57UQ", cat: "KIDS" },
+  { num: 26, name: "KIDS DIANA",    ch: "UCk8GzjMOrta8yxDcKfylJYw", cat: "KIDS" },
+  { num: 27, name: "LIKE NASTYA",   ch: "UCJplp5SjeGSdVdwsfb9Q7lQ", cat: "KIDS" },
+  { num: 28, name: "VLAD & NIKI",   ch: "UCvlE5gTbOvjiolFlEm-c_Ow", cat: "KIDS" },
+  { num: 29, name: "RYAN'S WORLD",  ch: "UChGJGhZ9SOOHvBB0Y4DOO_w", cat: "KIDS" },
+  { num: 30, name: "5-MIN CRAFTS",  ch: "UC295-Dw_tDNtZXFeAPAW6Aw", cat: "DIY" },
+  { num: 31, name: "MR BEAN",       ch: "UClO8gQ5wDx_l9XFC2NK3VOA", cat: "COMEDY" },
+  { num: 32, name: "T-SERIES",      ch: "UCq-Fj5jknLsUf-MWSy4_brA", cat: "MUSIC" },
+  { num: 33, name: "SET INDIA",     ch: "UCpEhnqL0y41EpW2TvWAHD7Q", cat: "TV" },
+  { num: 34, name: "BLACKPINK",     ch: "UCOmHUn--16B90oW2L6FRR3A", cat: "K-POP" },
+  { num: 35, name: "BANGTANTV",     ch: "UCLkAepWjdylmXSltofFvsYQ", cat: "K-POP" },
+  { num: 36, name: "HYBE LABELS",   ch: "UC3IZKseVpDuPmMya0o4eMCw", cat: "K-POP" },
+  { num: 37, name: "ED SHEERAN",    ch: "UC0C-w0YjGpqDXGB8IHb662A", cat: "MUSIC" },
+  { num: 38, name: "TAYLOR SWIFT",  ch: "UCqECaJ8Gagnn7YCbPEzWH6g", cat: "MUSIC" },
+  { num: 39, name: "ARIANA GRANDE", ch: "UC9CoOnJkIBMdeeDcK7EOWlw", cat: "MUSIC" },
+  { num: 40, name: "JUSTIN BIEBER", ch: "UCHkj014U2CQ2Nv0UZeYpE_A", cat: "MUSIC" },
+  { num: 41, name: "MARSHMELLO",    ch: "UCEdvpU2pFRCVqU6yIPyTpMQ", cat: "MUSIC" },
+  { num: 42, name: "EMINEM",        ch: "UCfM3zsQsOnfWNUppiycmBuw", cat: "MUSIC" },
+  { num: 43, name: "COLDPLAY",      ch: "UCDPM_n1atn2ijUwHd0NNRQw", cat: "MUSIC" },
+  { num: 44, name: "ZEE MUSIC",     ch: "UCFFbwnve3yF62-tVXkTyHqg", cat: "MUSIC" },
 ];
+
+/* uploads playlist id for a channel (UC… -> UU…) */
+const uploadsOf = (i) => "UU" + CHANNELS[i].ch.slice(2);
+const showsOf = (ch) => [ch.cat, "Latest Uploads", "Top Videos"];
 
 const SEGMENTS = 15;
 const VOL_STEP = 10;
@@ -41,6 +78,8 @@ let index = 0;
 let isOn = false;
 let tuned = false;
 let volume = 0;        // starts muted so the video can autoplay on mobile
+let errCount = 0;      // consecutive embed failures (caps the auto-surf)
+let onErrorSkip;       // timer handle for auto-surfing past dead channels
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -67,8 +106,10 @@ function onYouTubeIframeAPIReady() {
     // privacy domain + explicit origin avoids YouTube's "confirm you're not a
     // bot" interstitial that appears on plain cross-origin embeds
     host: "https://www.youtube-nocookie.com",
-    videoId: CHANNELS[index].id,
-    playerVars: { autoplay: 0, controls: 0, rel: 0, iv_load_policy: 3, playsinline: 1, mute: 1, origin: location.origin },
+    playerVars: {
+      autoplay: 0, controls: 0, rel: 0, iv_load_policy: 3, playsinline: 1, mute: 1,
+      origin: location.origin, listType: "playlist", list: uploadsOf(index),
+    },
     events: {
       onReady: () => {
         playerReady = true;
@@ -76,9 +117,16 @@ function onYouTubeIframeAPIReady() {
         if (isOn) playCurrent(); // start playing if powered on before the API loaded
       },
       onStateChange: (e) => {
-        if (e.data === YT.PlayerState.PLAYING) { setStatic(false); hideNoSignal(); }
+        if (e.data === YT.PlayerState.PLAYING) { setStatic(false); hideNoSignal(); errCount = 0; }
       },
-      onError: () => showNoSignal("NO SIGNAL", "CHANNEL UNAVAILABLE"),
+      onError: () => {
+        showNoSignal("NO SIGNAL", "CHANNEL UNAVAILABLE");
+        // while watching, automatically surf past channels that won't embed
+        if (tuned && errCount++ < 6) {
+          clearTimeout(onErrorSkip);
+          onErrorSkip = setTimeout(() => { if (tuned) changeChannel(1); }, 2600);
+        }
+      },
     },
   });
 }
@@ -130,21 +178,24 @@ function renderListings() {
   els.slot0.textContent = labels[0];
   els.slot1.textContent = labels[1];
   els.slot2.textContent = labels[2];
-  const rowHTML = (ch, i) => `
+  const rowHTML = (ch, i) => {
+    const s = showsOf(ch);
+    return `
     <div class="row${i === index ? " current" : ""}" data-i="${i}" role="button" tabindex="0"
          aria-label="Watch channel ${ch.num} ${ch.name}">
       <div class="cell cell-ch"><b>${ch.num}</b>${ch.name}</div>
-      <div class="cell">${ch.shows[0]}</div>
-      <div class="cell">${ch.shows[1]}</div>
-      <div class="cell">${ch.shows[2]}</div>
+      <div class="cell">${s[0]}</div>
+      <div class="cell">${s[1]}</div>
+      <div class="cell">${s[2]}</div>
     </div>`;
+  };
   const once = CHANNELS.map(rowHTML).join("");
   els.listingsRows.innerHTML = once + once; // duplicate for seamless loop
 }
 
 function updatePromo() {
   const ch = CHANNELS[index];
-  els.promoNow.textContent = `NOW: CH ${ch.num} ${ch.name} — ${ch.shows[0]}`;
+  els.promoNow.textContent = `NOW: CH ${ch.num} ${ch.name} — ${ch.cat}`;
   els.previewTag.textContent = `CH ${ch.num} ${ch.name}`;
   els.bugNum.textContent = pad(ch.num);
   els.bugName.textContent = ch.name;
@@ -178,9 +229,13 @@ function glitch() {
 /* ---------- Playback ---------- */
 function playCurrent() {
   hideNoSignal();
+  clearTimeout(onErrorSkip);
   glitch();
   if (!playerReady) return;
-  setTimeout(() => { player.loadVideoById(CHANNELS[index].id); player.playVideo(); }, 220);
+  setTimeout(() => {
+    player.loadPlaylist({ list: uploadsOf(index), listType: "playlist", index: 0 });
+    player.playVideo();
+  }, 220);
 }
 
 /* ---------- Modes ---------- */

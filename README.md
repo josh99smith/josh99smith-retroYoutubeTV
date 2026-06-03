@@ -44,19 +44,22 @@ Then open <http://localhost:8000>.
 
 ## Customize channels
 
-Channels are just YouTube video IDs. Edit the `CHANNELS` array at the top of
-[`app.js`](app.js):
+Each channel is a **real top YouTube channel**, played via its uploads
+playlist, so a channel shows a rotating feed of that creator's actual videos
+(latest first) — MrBeast, NASA, Nat Geo, TED, Lofi Girl, Cocomelon, and more.
+Edit the `CHANNELS` array at the top of [`app.js`](app.js):
 
 ```js
 const CHANNELS = [
-  { num: 2, name: "LO-FI 24", id: "jfKfPfyJRdk",
-    shows: ["Late Night Beats", "Study Hall", "Midnight Loops"] },
-  // add your own { num, name, id, shows: [s1, s2, s3] } ...
+  { num: 2, name: "MR BEAST", ch: "UCX6OQ3DkcsbYNE6H8uQQuVA", cat: "ENTERTAINMENT" },
+  // add your own { num, name, ch: "UC…channel id", cat } ...
 ];
 ```
 
-`id` is the part after `watch?v=` in a YouTube URL. `shows` are the three
-program names shown across the guide's time columns.
+`ch` is the channel's `UC…` ID (from its channel URL); the app converts it to
+the `UU…` uploads playlist automatically. Channels whose videos block
+embedding show a **NO SIGNAL** card and auto-surf to the next one while
+watching.
 
 ## Tech
 
