@@ -11,24 +11,24 @@
  * zero-dependency static site uses a curated set of top / most-viewed videos.
  */
 
+/* Lineup favors content that embeds reliably: 24/7 live radio streams and
+ * Creative-Commons films play almost everywhere. A few popular music videos
+ * are included too; if any refuses to embed you'll see the NO SIGNAL card. */
 const CHANNELS = [
-  { num: 2,  name: "LO-FI 24",   id: "jfKfPfyJRdk", shows: ["Late Night Beats", "Study Hall", "Midnight Loops"] },
-  { num: 3,  name: "NASA LIVE",  id: "21X5lGlDOfg", shows: ["Live From Orbit", "Blue Marble", "Deep Space"] },
-  { num: 4,  name: "NATURE HD",  id: "BHACKCNDMW8", shows: ["Wild Coastlines", "Aerial Earth", "Rainforest"] },
-  { num: 5,  name: "GANGNAM TV", id: "9bZkp7q19f0", shows: ["PSY — Gangnam Style", "K-Pop Hour", "Viral Classics"] },
-  { num: 6,  name: "DESPACITO",  id: "kJQP7kiw5Fk", shows: ["Luis Fonsi — Despacito", "Latin Hits", "Top Charts"] },
-  { num: 7,  name: "ED SHEERAN", id: "JGwWNGJdvx8", shows: ["Shape of You", "Pop Rotation", "Top 40"] },
-  { num: 8,  name: "THROWBACK",  id: "RgKAFK5djSk", shows: ["See You Again", "Throwback Jams", "Top 40"] },
-  { num: 9,  name: "FUNK FM",    id: "OPf0YbXqDm0", shows: ["Uptown Funk", "Feel-Good Hits", "Dance Party"] },
-  { num: 10, name: "MAROON 5",   id: "09R8_2nJtjg", shows: ["Sugar", "Pop Rotation", "Top 40"] },
-  { num: 11, name: "KATY PERRY", id: "CevxZvSJLk8", shows: ["Roar", "Pop Anthems", "Top 40"] },
-  { num: 12, name: "T-SWIFT",    id: "nfWlot6h_JM", shows: ["Shake It Off", "Pop Rotation", "Top 40"] },
+  { num: 2,  name: "LO-FI 24",   id: "jfKfPfyJRdk", shows: ["Beats to Relax", "Study Hall", "Midnight Loops"] },
+  { num: 3,  name: "SYNTHWAVE",  id: "4xDzrJKXOOY", shows: ["Neon Drive", "Outrun '89", "Midnight Run"] },
+  { num: 4,  name: "CHILL FM",   id: "rUxyKA_-grg", shows: ["Lounge Hour", "Easy Listening", "After Dark"] },
+  { num: 5,  name: "JAZZ NITE",  id: "Dx5qFachd3A", shows: ["Smooth Sets", "Blue Note Hour", "Late Lounge"] },
+  { num: 6,  name: "CARTOON",    id: "aqz-KE-bpKQ", shows: ["Big Buck Bunny", "Matinee", "All Ages"] },
+  { num: 7,  name: "NATURE HD",  id: "BHACKCNDMW8", shows: ["Wild Coastlines", "Aerial Earth", "Rainforest"] },
+  { num: 8,  name: "COFFEE TV",  id: "1fueZCTYkpA", shows: ["Morning Brew", "Bossa Cafe", "Slow Mornings"] },
+  { num: 9,  name: "GANGNAM TV", id: "9bZkp7q19f0", shows: ["PSY — Gangnam Style", "K-Pop Hour", "Viral Classics"] },
+  { num: 10, name: "DESPACITO",  id: "kJQP7kiw5Fk", shows: ["Luis Fonsi — Despacito", "Latin Hits", "Top Charts"] },
+  { num: 11, name: "FUNK FM",    id: "OPf0YbXqDm0", shows: ["Uptown Funk", "Feel-Good Hits", "Dance Party"] },
+  { num: 12, name: "KATY PERRY", id: "CevxZvSJLk8", shows: ["Roar", "Pop Anthems", "Top 40"] },
   { num: 13, name: "DRAGONS TV", id: "7wtfhZwyrcc", shows: ["Believer", "Rock Hour", "Top 40"] },
-  { num: 14, name: "ADELE",      id: "YQHsXMglC9A", shows: ["Hello", "Soul & Ballads", "Top 40"] },
-  { num: 15, name: "BILLIE",     id: "DyDfgMOUjCI", shows: ["Bad Guy", "Alt Pop", "New Hits"] },
-  { num: 16, name: "WALKER FM",  id: "60ItHLz5WEA", shows: ["Faded", "EDM Hour", "Dance Party"] },
-  { num: 17, name: "KIDS ZONE",  id: "XqZsoesa55w", shows: ["Baby Shark", "Cartoon Hits", "All Ages"] },
-  { num: 18, name: "SYNTHWAVE",  id: "4xDzrJKXOOY", shows: ["Neon Drive", "Outrun '89", "Midnight Run"] },
+  { num: 14, name: "WALKER FM",  id: "60ItHLz5WEA", shows: ["Faded", "EDM Hour", "Dance Party"] },
+  { num: 15, name: "KIDS ZONE",  id: "XqZsoesa55w", shows: ["Baby Shark", "Cartoon Hits", "All Ages"] },
 ];
 
 const SEGMENTS = 15;
@@ -55,6 +55,7 @@ const els = {
   static: $("static"), powerOff: $("powerOff"), led: $("led"), hint: $("hint"),
   powerBtn: $("powerBtn"), chUp: $("chUp"), chDown: $("chDown"),
   volUp: $("volUp"), volDown: $("volDown"), guideBtn: $("guideBtn"), watchBtn: $("watchBtn"),
+  fullBtn: $("fullBtn"),
   slot0: $("slot0"), slot1: $("slot1"), slot2: $("slot2"),
 };
 
@@ -63,8 +64,11 @@ const wrap = (i) => (i % CHANNELS.length + CHANNELS.length) % CHANNELS.length;
 /* ---------- YouTube ---------- */
 function onYouTubeIframeAPIReady() {
   player = new YT.Player("player", {
+    // privacy domain + explicit origin avoids YouTube's "confirm you're not a
+    // bot" interstitial that appears on plain cross-origin embeds
+    host: "https://www.youtube-nocookie.com",
     videoId: CHANNELS[index].id,
-    playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1, mute: 1 },
+    playerVars: { autoplay: 0, controls: 0, rel: 0, iv_load_policy: 3, playsinline: 1, mute: 1, origin: location.origin },
     events: {
       onReady: () => {
         playerReady = true;
@@ -268,6 +272,27 @@ function powerOff() {
 }
 const togglePower = () => (isOn ? powerOff() : powerOn());
 
+/* ---------- Full-screen / cinema mode ---------- */
+function isCinema() { return document.body.classList.contains("cinema"); }
+function setCinema(on) {
+  document.body.classList.toggle("cinema", on);
+  els.fullBtn.innerHTML = on ? "&#10005;&nbsp;EXIT" : "&#9974;&nbsp;FULL SCREEN";
+  els.fullBtn.setAttribute("aria-label", on ? "Exit full screen" : "Full screen");
+  try {
+    if (on) {
+      const el = document.documentElement;
+      (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+    } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+      (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+    }
+  } catch (_) { /* Fullscreen API unsupported (e.g. iOS) — CSS cinema mode still applies */ }
+}
+const toggleCinema = () => setCinema(!isCinema());
+// keep CSS state in sync if the user leaves native fullscreen via the OS/Esc
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement && isCinema()) setCinema(false);
+});
+
 /* ---------- Guide scroll: pause while the user is interacting ---------- */
 function pauseScroll() {
   els.listingsRows.classList.add("paused");
@@ -284,6 +309,7 @@ els.volDown.addEventListener("click", () => changeVolume(-VOL_STEP));
 els.guideBtn.addEventListener("click", () => { if (isOn) showGuide(); });
 els.watchBtn.addEventListener("click", () => { if (isOn) watchChannel(); });
 els.guideChip.addEventListener("click", () => { if (isOn) showGuide(); });
+els.fullBtn.addEventListener("click", toggleCinema);
 els.unmuteBtn.addEventListener("click", () => setVolume(DEFAULT_VOL));
 els.previewWindow.addEventListener("click", () => { if (isOn) tuneTo(index); });
 
@@ -301,6 +327,8 @@ els.listingsRows.addEventListener("keydown", (e) => {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "p" || e.key === "P") return togglePower();
+  if (e.key === "f" || e.key === "F") return toggleCinema();
+  if (e.key === "Escape" && isCinema()) return setCinema(false);
   if (!isOn) return;
   if (e.key >= "0" && e.key <= "9") return pushDigit(e.key);
   switch (e.key) {

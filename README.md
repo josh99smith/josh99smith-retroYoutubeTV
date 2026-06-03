@@ -21,8 +21,9 @@ it full-screen, complete with a 90s channel banner.
 - 📡 **Static distortion** on channel change (burst + rolling glitch bar + jitter)
 - 📺 **NO SIGNAL** color-bars fallback for any non-embeddable video
 - 🔌 CRT power-off animation, scanlines, curved-glass glare
+- 🖥️ **Full-screen / cinema mode** (Fullscreen API + CSS fallback for iOS)
 - ♿ Keyboard-accessible (focus styles, `role=button` rows) + `prefers-reduced-motion` support
-- ⌨️ Keys: `P` power · ↑/↓ channel · ←/→ volume · `M` mute · digits = channel · `G` guide · `Enter` watch
+- ⌨️ Keys: `P` power · `F` full screen · ↑/↓ channel · ←/→ volume · `M` mute · digits = channel · `G` guide · `Enter` watch
 
 ## Run it
 
