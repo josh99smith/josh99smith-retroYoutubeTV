@@ -124,7 +124,7 @@ const els = {
   osdVol: $("osdVol"), osdSpk: $("osdSpk"), volBar: $("volBar"), unmuteBtn: $("unmuteBtn"),
   static: $("static"), powerOff: $("powerOff"), led: $("led"), hint: $("hint"),
   powerBtn: $("powerBtn"), chUp: $("chUp"), chDown: $("chDown"),
-  volUp: $("volUp"), volDown: $("volDown"), guideBtn: $("guideBtn"), watchBtn: $("watchBtn"),
+  volUp: $("volUp"), volDown: $("volDown"), guideBtn: $("guideBtn"),
   fullBtn: $("fullBtn"),
   slot0: $("slot0"), slot1: $("slot1"), slot2: $("slot2"),
 };
@@ -137,9 +137,14 @@ function onYouTubeIframeAPIReady() {
     // privacy domain + explicit origin avoids YouTube's "confirm you're not a
     // bot" interstitial that appears on plain cross-origin embeds
     host: "https://www.youtube-nocookie.com",
+    // NOTE: init with a placeholder video, NOT a playlist. If the player is
+    // created with a playlist in playerVars, later loadPlaylist() calls are
+    // ignored (channel labels change but the video never does). Initializing
+    // API-driven keeps loadPlaylist() working on every channel change.
+    videoId: "aqz-KE-bpKQ",
     playerVars: {
       autoplay: 0, controls: 0, rel: 0, iv_load_policy: 3, playsinline: 1, mute: 1,
-      origin: location.origin, listType: "playlist", list: uploadsOf(index),
+      origin: location.origin,
     },
     events: {
       onReady: () => {
@@ -419,7 +424,6 @@ els.chDown.addEventListener("click", () => changeChannel(-1));
 els.volUp.addEventListener("click", () => changeVolume(VOL_STEP));
 els.volDown.addEventListener("click", () => changeVolume(-VOL_STEP));
 els.guideBtn.addEventListener("click", () => { if (isOn) showGuide(); });
-els.watchBtn.addEventListener("click", () => { if (isOn) watchChannel(); });
 els.guideChip.addEventListener("click", () => { if (isOn) showGuide(); });
 els.fullBtn.addEventListener("click", toggleCinema);
 els.unmuteBtn.addEventListener("click", () => setVolume(DEFAULT_VOL));
