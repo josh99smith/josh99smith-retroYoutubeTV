@@ -144,10 +144,13 @@ body {
 .cell-ch b { color: #fff; margin-right: 4px; }
 
 /* ===== channel bug + back chip ===== */
-.chan-bug { position: absolute; right: 4%; bottom: 6%; z-index: 6; pointer-events: none; display: flex; align-items: baseline; gap: 6px; opacity: 0; transition: opacity 0.3s ease; background: rgba(0,0,0,0.35); padding: 3px 9px; border-radius: 4px; }
+.chan-bug { position: absolute; right: 4%; bottom: 6%; z-index: 6; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 64%; opacity: 0; transition: opacity 0.3s ease; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 5px; }
+.bug-line { display: flex; align-items: baseline; gap: 6px; }
 .chan-bug b { color: var(--guide-yellow); font-size: clamp(13px,3.4vw,20px); text-shadow: 1px 1px 0 #000; }
-.chan-bug span { color: #fff; font-size: clamp(9px,2.4vw,13px); letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
-.screen.tuned .chan-bug { opacity: 0.9; }
+.chan-bug .bug-line span { color: #fff; font-size: clamp(9px,2.4vw,13px); letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
+.bug-title { color: #cfe; font-weight: normal; font-size: clamp(8px,2.1vw,12px); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; text-shadow: 1px 1px 0 #000; }
+.bug-title:empty { display: none; }
+.screen.tuned .chan-bug { opacity: 0.92; }
 .guide-chip { position: absolute; left: 4%; top: 5%; z-index: 6; font: inherit; font-weight: bold; font-size: clamp(10px,2.6vw,14px); letter-spacing: 1px; color: #fff; background: rgba(10,10,114,0.7); border: 1px solid var(--guide-cyan); border-radius: 4px; padding: 5px 10px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
 .screen.tuned .guide-chip { opacity: 0.92; pointer-events: auto; }
 

@@ -119,7 +119,7 @@ const els = {
   previewWindow: $("previewWindow"),
   listingsRows: $("listingsRows"), listingsViewport: $("listingsViewport"),
   noSignal: $("noSignal"), nsText: $("nsText"),
-  chanBug: $("chanBug"), bugNum: $("bugNum"), bugName: $("bugName"), guideChip: $("guideChip"),
+  chanBug: $("chanBug"), bugNum: $("bugNum"), bugName: $("bugName"), bugTitle: $("bugTitle"), guideChip: $("guideChip"),
   osdCh: $("osdCh"), osdChNum: $("osdChNum"), osdChName: $("osdChName"),
   osdVol: $("osdVol"), osdSpk: $("osdSpk"), volBar: $("volBar"), unmuteBtn: $("unmuteBtn"),
   static: $("static"), powerOff: $("powerOff"), led: $("led"), hint: $("hint"),
@@ -148,7 +148,12 @@ function onYouTubeIframeAPIReady() {
         if (isOn) playCurrent(); // start playing if powered on before the API loaded
       },
       onStateChange: (e) => {
-        if (e.data === YT.PlayerState.PLAYING) { setStatic(false); hideNoSignal(); errCount = 0; }
+        if (e.data === YT.PlayerState.PLAYING) {
+          setStatic(false); hideNoSignal(); errCount = 0;
+          applyVideoData();
+          // author/title can lag a beat after PLAYING fires
+          setTimeout(applyVideoData, 700);
+        }
       },
       onError: () => {
         showNoSignal("NO SIGNAL", "CHANNEL UNAVAILABLE");
@@ -226,11 +231,32 @@ function renderListings() {
 
 function updatePromo() {
   const ch = CHANNELS[index];
+  // show the curated name immediately; applyVideoData() corrects it to the
+  // real channel/title once the video starts playing
   els.promoNow.textContent = `NOW: CH ${ch.num} ${ch.name} — ${ch.cat}`;
   els.previewTag.textContent = `CH ${ch.num} ${ch.name}`;
   els.bugNum.textContent = pad(ch.num);
   els.bugName.textContent = ch.name;
+  els.bugTitle.textContent = "";
   document.querySelectorAll(".row").forEach((r) => r.classList.toggle("current", Number(r.dataset.i) === index));
+}
+
+/* Replace labels with the REAL channel + video title reported by the player,
+ * so what's on screen always matches what's actually playing. */
+function applyVideoData() {
+  if (!playerReady || typeof player.getVideoData !== "function") return;
+  const d = player.getVideoData() || {};
+  const ch = CHANNELS[index];
+  const channelName = d.author || ch.name;
+  const videoTitle = d.title || "";
+  els.bugName.textContent = channelName;
+  els.bugTitle.textContent = videoTitle;
+  els.previewTag.textContent = `CH ${ch.num} ${channelName}`;
+  els.promoNow.textContent = videoTitle
+    ? `NOW: ${channelName} — ${videoTitle}`
+    : `NOW: CH ${ch.num} ${channelName}`;
+  // if the channel OSD is still on screen, correct its name too
+  if (els.osdCh.classList.contains("show")) els.osdChName.textContent = channelName;
 }
 
 /* ---------- 90s OSD ---------- */
